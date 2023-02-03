@@ -6,7 +6,7 @@ public class Relaxation {
         return Math.pow(x, 3) - 2*Math.pow(x, 2) + x + 1;
     }
     public static void main(String[] args) {
-        double x0 = 0;
+        double x0 = -0.5;
         double x1;
         double x0dummy;
         double tau = 0.421;
