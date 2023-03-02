@@ -60,7 +60,91 @@ class LagrangePolynomial {
 }
 
 
+class Spline {
+    private final List<Double> x;
+    private final List<Double> y;
+    private final int n;
+    private double[] h;
+    private double[] b;
+    private double[] u;
+    private double[] v;
+    private double[] z;
 
+    public Spline(List<Double> x, List<Double> y) {
+        this.x = x;
+        this.y = y;
+        this.n = x.size();
+        this.h = new double[n - 1];
+        this.b = new double[n - 1];
+        this.u = new double[n - 1];
+        this.v = new double[n - 1];
+        this.z = new double[n];
+        init();
+    }
+
+    private void init() {
+        for (int i = 0; i < n - 1; i++) {
+            h[i] = x.get(i + 1) - x.get(i);
+            b[i] = (y.get(i + 1) - y.get(i)) / h[i];
+        }
+        u[1] = 2 * (h[0] + h[1]);
+        v[1] = 6 * (b[1] - b[0]);
+        for (int i = 2; i < n - 1; i++) {
+            u[i] = 2 * (h[i - 1] + h[i]) - (h[i - 1] * h[i - 1]) / u[i - 1];
+            v[i] = 6 * (b[i] - b[i - 1]) - (h[i - 1] * v[i - 1]) / u[i - 1];
+        }
+        z[n - 1] = 0;
+        for (int i = n - 2; i > 0; i--) {
+            z[i] = (v[i] - h[i] * z[i + 1]) / u[i];
+        }
+        z[0] = 0;
+    }
+
+    public void print() {
+        System.out.println("Cubic Spline:");
+        for (int i = 0; i < n - 1; i++) {
+            System.out.printf("Interval [%f, %f]: S(x) = ", x.get(i), x.get(i+1));
+            double a = y.get(i);
+            double b = (y.get(i + 1) - y.get(i)) / h[i] - h[i] * (z[i + 1] + 2 * z[i]) / 6;
+            double c = z[i] / 2;
+            double d = (z[i + 1] - z[i]) / (6 * h[i]);
+            if (a != 0) {
+                System.out.printf("%.2f ", a);
+            }
+            if (b != 0) {
+                if (b > 0) {
+                    if (a != 0) {
+                        System.out.print("+ ");
+                    }
+                    System.out.printf("%.2fx ", Math.abs(b));
+                } else {
+                    System.out.printf("- %.2fx ", Math.abs(b));
+                }
+            }
+            if (c != 0) {
+                if (c > 0) {
+                    if (a != 0 || b != 0) {
+                        System.out.print("+ ");
+                    }
+                    System.out.printf("%.2fx^2 ", Math.abs(c));
+                } else {
+                    System.out.printf("- %.2fx^2 ", Math.abs(c));
+                }
+            }
+            if (d != 0) {
+                if (d > 0) {
+                    if (a != 0 || b != 0 || c != 0) {
+                        System.out.print("+ ");
+                    }
+                    System.out.printf("%.2fx^3", Math.abs(d));
+                } else {
+                    System.out.printf("- %.2fx^3", Math.abs(d));
+                }
+            }
+            System.out.println();
+        }
+    }
+}
 public class Interpolation {
 
     private static List<Double> chebishovRoots(double a, double b, int n) {
@@ -96,5 +180,9 @@ public class Interpolation {
         System.out.println();
         System.out.println();
         LagrangePolynomial.interpolate(FiBasedOnChebishovXi, chebishovXi);
+        System.out.println();
+        System.out.println();
+        final var spline = new Spline(chebishovXi, FiBasedOnChebishovXi);
+        spline.print();
     }
 }
